@@ -5,10 +5,14 @@ require('dotenv').config();
 const pool = require('./config/database'); // <-- Importamos nuestra configuración de DB
 const conceptosRoutes = require('./routes/conceptos.routes.js');
 const listasRoutes = require('./routes/listas.routes.js');
+const alumnosRoutes = require('./routes/alumnos.routes.js');
+const cargosRoutes = require('./routes/cargos.routes.js');
+const recibosRoutes = require('./routes/recibos.routes.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api/alumnos', alumnosRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -32,8 +36,13 @@ app.get('/db-test', async (req, res) => {
 });
 // --- FIN DE LA NUEVA RUTA ---
 
+
+
+// Para obtener los cargos de un alumno específico la ruta será: /api/alumnos/1/cargos
+app.use('/api/alumnos/:alumnoId/cargos', cargosRoutes);
 app.use('/api/conceptos', conceptosRoutes);
 app.use('/api/listas-precios', listasRoutes);
+app.use('/api/recibos', recibosRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
