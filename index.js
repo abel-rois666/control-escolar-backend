@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const pool = require('./config/database'); // <-- Importamos nuestra configuración de DB
+const conceptosRoutes = require('./routes/conceptos.routes.js');
+const listasRoutes = require('./routes/listas.routes.js');
 
 const app = express();
 app.use(cors());
@@ -29,6 +31,9 @@ app.get('/db-test', async (req, res) => {
   }
 });
 // --- FIN DE LA NUEVA RUTA ---
+
+app.use('/api/conceptos', conceptosRoutes);
+app.use('/api/listas-precios', listasRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
