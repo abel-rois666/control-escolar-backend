@@ -9,6 +9,7 @@ const alumnosRoutes = require('./routes/alumnos.routes.js');
 const cargosRoutes = require('./routes/cargos.routes.js');
 const recibosRoutes = require('./routes/recibos.routes.js');
 const reportesRoutes = require('./routes/reportes.routes.js');
+const estadoCuentaRoutes = require('./routes/estadoCuenta.routes.js');
 
 const app = express();
 app.use(cors());
@@ -45,6 +46,7 @@ app.use('/api/alumnos/:alumnoId/cargos', cargosRoutes);
 app.use('/api/conceptos', conceptosRoutes);
 app.use('/api/listas-precios', listasRoutes);
 app.use('/api/recibos', recibosRoutes);
+alumnosRoutes.use('/:alumnoId/estado-de-cuenta', estadoCuentaRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
