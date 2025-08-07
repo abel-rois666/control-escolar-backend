@@ -3,8 +3,21 @@ const pool = require('../config/database');
 
 // --- OBTENER TODOS LOS ALUMNOS ---
 const getAllAlumnos = async (req, res) => {
+  const { buscar } = req.query; // Obtenemos el parámetro 'buscar' de la URL
+
   try {
-    const result = await pool.query('SELECT * FROM alumnos ORDER BY nombre_completo ASC');
+    let query = 'SELECT * FROM alumnos';
+    const params = [];
+
+    if (buscar) {
+      // Si hay un término de búsqueda, modificamos la consulta
+      query += ' WHERE nombre_completo ILIKE $1 OR matricula ILIKE $1';
+      params.push(`%${buscar}%`); // ILIKE es para búsqueda insensible a mayúsculas/minúsculas
+    }
+
+    query += ' ORDER BY nombre_completo ASC';
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error(err.message);

@@ -8,11 +8,13 @@ const listasRoutes = require('./routes/listas.routes.js');
 const alumnosRoutes = require('./routes/alumnos.routes.js');
 const cargosRoutes = require('./routes/cargos.routes.js');
 const recibosRoutes = require('./routes/recibos.routes.js');
+const reportesRoutes = require('./routes/reportes.routes.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/alumnos', alumnosRoutes);
+app.use('/api/reportes', reportesRoutes);
 
 const PORT = process.env.PORT || 3000;
 
