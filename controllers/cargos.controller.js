@@ -3,25 +3,44 @@ const pool = require('../config/database');
 
 const getCargosByAlumno = async (req, res) => {
   const { alumnoId } = req.params;
+  const { cicloId } = req.query; // Obtenemos el ID del ciclo de la URL
+
   try {
-    const result = await pool.query(
-        `SELECT c.*, co.nombre_concepto 
-         FROM cargos AS c
-         JOIN conceptos AS co ON c.concepto_id = co.id
-         WHERE c.alumno_id = $1 
-         ORDER BY c.created_at DESC`, 
-        [alumnoId]
-    );
+    let query = `
+      SELECT c.*, co.nombre_concepto 
+      FROM cargos AS c
+      JOIN conceptos AS co ON c.concepto_id = co.id
+      WHERE c.alumno_id = $1
+    `;
+    const params = [alumnoId];
+
+    // Si se proporciona un cicloId, añadimos el filtro de forma segura
+    if (cicloId) {
+      const cicloRes = await pool.query('SELECT fecha_inicio, fecha_fin FROM ciclos_escolares WHERE id = $1', [cicloId]);
+
+      if (cicloRes.rows.length > 0 && cicloRes.rows[0].fecha_inicio && cicloRes.rows[0].fecha_fin) {
+        const { fecha_inicio, fecha_fin } = cicloRes.rows[0];
+        // Los nuevos parámetros serán $2 y $3
+        query += ` AND c.created_at::date BETWEEN $2 AND $3`;
+        params.push(fecha_inicio, fecha_fin);
+      } else {
+        // Si el ciclo no existe o no tiene fechas, devolvemos un arreglo vacío
+        return res.json([]);
+      }
+    }
+
+    query += ' ORDER BY c.created_at DESC';
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error(err.message);
+    console.error("Error en getCargosByAlumno:", err.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
 const createCargo = async (req, res) => {
-  // ---- CORRECCIÓN AQUÍ ----
-  const { alumnoId } = req.params; // Tomamos el ID de la URL
+  const { alumnoId } = req.params; 
   const { concepto_id, fecha_vencimiento } = req.body;
 
   if (!concepto_id) {
@@ -46,7 +65,7 @@ const createCargo = async (req, res) => {
         [lista_de_precios_id, concepto_id]
     );
     if (itemRes.rows.length === 0) {
-        return res.status(404).json({ error: 'El concepto no tiene un precio definido para la lista de este alumno.' });
+        return res.status(404).json({ error: 'El concepto no tiene un precio definido para el plan de este alumno.' });
     }
     const monto_original = parseFloat(itemRes.rows[0].monto);
 
@@ -65,7 +84,7 @@ const createCargo = async (req, res) => {
     res.status(201).json(result.rows[0]);
 
   } catch (err) {
-    console.error(err.message);
+    console.error("Error en createCargo:", err.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

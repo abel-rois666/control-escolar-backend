@@ -10,12 +10,16 @@ const cargosRoutes = require('./routes/cargos.routes.js');
 const recibosRoutes = require('./routes/recibos.routes.js');
 const reportesRoutes = require('./routes/reportes.routes.js');
 const estadoCuentaRoutes = require('./routes/estadoCuenta.routes.js');
+const ciclosRoutes = require('./routes/ciclos.routes.js');
+const licenciaturasRoutes = require('./routes/licenciaturas.routes.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/alumnos', alumnosRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/ciclos-escolares', ciclosRoutes);
+app.use('/api/licenciaturas', licenciaturasRoutes);
 
 const PORT = process.env.PORT || 3000;
 
