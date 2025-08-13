@@ -2,7 +2,6 @@
 const pool = require('../config/database');
 
 const getIngresosDiarios = async (req, res) => {
-  // Obtenemos el parámetro 'fecha' de la URL. Si no viene, usamos la fecha de hoy.
   const { fecha } = req.query;
 
   try {
@@ -14,10 +13,7 @@ const getIngresosDiarios = async (req, res) => {
        WHERE fecha_pago = $1
        GROUP BY forma_pago`;
 
-    // Si no se proporciona fecha, PostgreSQL usa CURRENT_DATE.
-    // Si se proporciona, usamos esa fecha.
     const targetDate = fecha ? fecha : new Date();
-
     const result = await pool.query(query, [targetDate]);
     res.json(result.rows);
   } catch (err) {
@@ -26,7 +22,6 @@ const getIngresosDiarios = async (req, res) => {
   }
 };
 
-// --- FUNCIÓN MEJORADA PARA REPORTE DE ADEUDOS ---
 const getReporteAdeudos = async (req, res) => {
   const { fechaInicio, fechaFin, sortBy, sortOrder } = req.query;
 
@@ -34,19 +29,26 @@ const getReporteAdeudos = async (req, res) => {
     return res.status(400).json({ error: 'Se requieren fechaInicio y fechaFin' });
   }
 
-  // --- Lógica de Ordenamiento Seguro ---
-  // 1. Lista blanca de columnas permitidas para ordenar
   const allowedSortColumns = ['nombre_completo', 'nombre_concepto', 'saldo_pendiente', 'fecha_vencimiento', 'grupo', 'turno'];
-
-  // 2. Valores por defecto si no se especifican
-  const orderBy = allowedSortColumns.includes(sortBy) ? sortBy : 'nombre_completo';
+  
+  // Lógica de ordenamiento corregida
+  let orderBy;
+  const selectedSort = allowedSortColumns.includes(sortBy) ? sortBy : 'nombre_completo';
+  
+  if (selectedSort === 'nombre_completo') {
+    // Ordenamos por los campos individuales para un ordenamiento alfabético correcto
+    orderBy = `a.apellido_paterno, a.apellido_materno, a.nombre`;
+  } else {
+    orderBy = selectedSort;
+  }
+  
   const orderDirection = sortOrder === 'DESC' ? 'DESC' : 'ASC';
 
   try {
-    // 3. Consulta SQL actualizada para incluir las nuevas columnas y el ordenamiento dinámico
+    // Consulta SQL corregida
     const query = `
       SELECT
-         a.nombre_completo,
+         (a.apellido_paterno || ' ' || a.apellido_materno || ' ' || a.nombre) as nombre_completo,
          a.grupo,
          a.turno,
          co.nombre_concepto,
@@ -58,10 +60,9 @@ const getReporteAdeudos = async (req, res) => {
        WHERE
          ca.saldo_pendiente > 0
          AND ca.fecha_vencimiento BETWEEN $1 AND $2
-       ORDER BY ${orderBy} ${orderDirection}`; // Inyectamos los valores seguros
+       ORDER BY ${orderBy} ${orderDirection}`;
 
     const result = await pool.query(query, [fechaInicio, fechaFin]);
-
     const totalAdeudo = result.rows.reduce((sum, cargo) => sum + parseFloat(cargo.saldo_pendiente), 0);
 
     res.json({
