@@ -12,6 +12,7 @@ const reportesRoutes = require('./routes/reportes.routes.js');
 const estadoCuentaRoutes = require('./routes/estadoCuenta.routes.js');
 const ciclosRoutes = require('./routes/ciclos.routes.js');
 const licenciaturasRoutes = require('./routes/licenciaturas.routes.js');
+const consultasRoutes = require('./routes/consultas.routes.js'); 
 
 const app = express();
 app.use(cors());
@@ -22,6 +23,8 @@ app.use('/api/ciclos-escolares', ciclosRoutes);
 app.use('/api/licenciaturas', licenciaturasRoutes);
 
 const PORT = process.env.PORT || 3000;
+
+app.use('/api/consultas/recibos', consultasRoutes);
 
 // Ruta de prueba del servidor
 app.get('/', (req, res) => {

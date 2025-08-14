@@ -101,24 +101,23 @@ const deleteAlumno = async (req, res) => {
 
 const generarCargosDelPlan = async (req, res) => {
     const { id: alumnoId } = req.params;
-    const { fecha_vencimiento, ciclo_id } = req.body;
+    // Ahora esperamos un arreglo de 'cargos' con sus fechas
+    const { ciclo_id, cargos: cargosParaCrear } = req.body;
 
-    if (!fecha_vencimiento || !ciclo_id) {
-        return res.status(400).json({ error: 'La fecha de vencimiento y el ciclo son requeridos.' });
+    if (!ciclo_id || !cargosParaCrear || !Array.isArray(cargosParaCrear)) {
+        return res.status(400).json({ error: 'El ciclo y la lista de cargos son requeridos.' });
     }
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
-        // 1. Obtener datos del alumno (plan de precios y beca)
         const alumnoRes = await client.query('SELECT lista_de_precios_id, porcentaje_beca FROM alumnos WHERE id = $1', [alumnoId]);
         if (alumnoRes.rows.length === 0) {
             return res.status(404).json({ error: 'Alumno no encontrado' });
         }
         const { lista_de_precios_id, porcentaje_beca } = alumnoRes.rows[0];
 
-        // 2. Obtener los items (conceptos y montos) del plan de precios
         const itemsRes = await client.query(
             `SELECT i.concepto_id, i.monto, c.aplica_beca 
              FROM items_de_la_lista i
@@ -126,9 +125,9 @@ const generarCargosDelPlan = async (req, res) => {
              WHERE i.lista_de_precios_id = $1`,
             [lista_de_precios_id]
         );
-        const itemsDelPlan = itemsRes.rows;
-
-        // 3. (Opcional pero recomendado) Obtener cargos ya existentes en el ciclo para no duplicar
+        // Usamos un Map para buscar montos fácilmente
+        const mapaItemsDelPlan = new Map(itemsRes.rows.map(i => [i.concepto_id, i]));
+        
         const cicloRes = await client.query('SELECT fecha_inicio, fecha_fin FROM ciclos_escolares WHERE id = $1', [ciclo_id]);
         if (cicloRes.rows.length === 0) return res.status(404).json({ error: 'Ciclo escolar no encontrado' });
         const { fecha_inicio, fecha_fin } = cicloRes.rows[0];
@@ -139,15 +138,17 @@ const generarCargosDelPlan = async (req, res) => {
         );
         const conceptosYaCargados = cargosExistentesRes.rows.map(c => c.concepto_id);
 
-        // 4. Recorrer los items y crear los cargos que no existan
-        for (const item of itemsDelPlan) {
-            if (conceptosYaCargados.includes(item.concepto_id)) {
-                continue; // Si ya existe, saltar al siguiente
-            }
+        // Recorremos el arreglo que nos llega del frontend
+        for (const cargo of cargosParaCrear) {
+            if (!cargo.fecha_vencimiento || !cargo.concepto_id) continue; // Ignorar si no tiene fecha
+            if (conceptosYaCargados.includes(cargo.concepto_id)) continue;
 
-            const monto_original = parseFloat(item.monto);
+            const itemDelPlan = mapaItemsDelPlan.get(cargo.concepto_id);
+            if (!itemDelPlan) continue; // Si el concepto no está en el plan, lo ignoramos
+
+            const monto_original = parseFloat(itemDelPlan.monto);
             let monto_descuento = 0;
-            if (item.aplica_beca && porcentaje_beca > 0) {
+            if (itemDelPlan.aplica_beca && porcentaje_beca > 0) {
                 monto_descuento = monto_original * (parseFloat(porcentaje_beca) / 100);
             }
             const monto_final = monto_original - monto_descuento;
@@ -155,7 +156,7 @@ const generarCargosDelPlan = async (req, res) => {
             await client.query(
                 `INSERT INTO cargos (alumno_id, concepto_id, monto_original, monto_descuento, monto_final, saldo_pendiente, fecha_vencimiento)
                  VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [alumnoId, item.concepto_id, monto_original, monto_descuento, monto_final, monto_final, fecha_vencimiento]
+                [alumnoId, cargo.concepto_id, monto_original, monto_descuento, monto_final, monto_final, cargo.fecha_vencimiento]
             );
         }
 
@@ -171,12 +172,11 @@ const generarCargosDelPlan = async (req, res) => {
     }
 };
 
-
 module.exports = {
   getAllAlumnos,
   getAlumnoById,
   createAlumno,
   updateAlumno,
   deleteAlumno,
-  generarCargosDelPlan, 
-  };
+  generarCargosDelPlan,
+};
