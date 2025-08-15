@@ -71,12 +71,15 @@ const getReciboById = async (req, res) => {
     }
     const recibo = reciboResult.rows[0];
 
-    // 2. Obtener los detalles de pago asociados a ese recibo
+    // 2. Obtener los detalles de pago asociados a ese recibo (Consulta Modificada)
     const detallesResult = await pool.query(
-      `SELECT d.monto_aplicado, c.nombre_concepto 
+      `SELECT 
+         d.monto_aplicado, 
+         c.nombre_concepto,
+         cr.monto_final as monto_total_cargo
        FROM detalles_del_pago AS d
-       JOIN cargos ON cargos.id = d.cargo_id
-       JOIN conceptos AS c ON cargos.concepto_id = c.id
+       JOIN cargos AS cr ON cr.id = d.cargo_id
+       JOIN conceptos AS c ON cr.concepto_id = c.id
        WHERE d.recibo_id = $1`,
       [id]
     );
@@ -99,5 +102,5 @@ const getReciboById = async (req, res) => {
 
 module.exports = {
   createReciboConDetalles,
-  getReciboById, // <-- Añade esta línea
+  getReciboById,
 };
