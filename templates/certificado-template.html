@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial Académico {{folio}}</title>
+</head>
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="main-title">HISTORIAL ACADÉMICO</div>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td class="label">NOMBRE DEL ALUMNO:</td>
+                <td>{{nombreAlumno}}</td>
+            </tr>
+            <tr>
+                <td class="label">CLAVE ÚNICA DE REGISTRO DE POBLACIÓN (CURP):</td>
+                <td>{{curp}}</td>
+            </tr>
+        </table>
+
+        <div class="intro-text">
+            A PETICIÓN DEL INTERESADO Y PARA LOS FINES LEGALES QUE AL MISMO CONVENGA,
+            SE HACE CONSTAR QUE EL (LA) C. <strong>{{nombreAlumno}}</strong>, CON NÚMERO
+            DE MATRÍCULA <strong>{{matricula}}</strong>, CURSÓ Y APROBÓ LAS ASIGNATURAS
+            QUE INTEGRAN EL PLAN DE ESTUDIOS DE LA <strong>Licenciatura en {{nombreCarrera}}</strong> Y QUE A
+            CONTINUACIÓN SE ENLISTAN:
+        </div>
+
+        <div class="table-container">
+            <table class="grades-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">CICLO</th>
+                        <th style="width: 15%;">CLAVE</th>
+                        <th style="width: 40%;">ASIGNATURA</th>
+                        <th style="width: 10%;">CALIF.</th>
+                        <th style="width: 15%;">LETRA</th>
+                        <th style="width: 10%;">OBS.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{filasAsignaturas}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer-summary">
+            <p>TOTAL DE CRÉDITOS: {{creditos}}</p>
+            <p>PROMEDIO GENERAL DE APROVECHAMIENTO: {{promedio}}</p>
+        </div>
+        
+        <table class="signatures-table">
+            <tr>
+                <td>
+                    <div class="signature-line"></div>
+                    <div>DIRECTOR</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
