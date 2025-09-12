@@ -14,6 +14,7 @@ const ciclosRoutes = require('./routes/ciclos.routes.js');
 const licenciaturasRoutes = require('./routes/licenciaturas.routes.js');
 const consultasRoutes = require('./routes/consultas.routes.js');
 const certificadosRoutes = require('./routes/certificados.routes.js'); // <-- **AÑADIDO**
+const xmlGeneratorRoutes = require('./routes/xmlGenerator.routes.js');
 
 const app = express();
 app.use(cors());
@@ -26,6 +27,7 @@ app.use('/api/ciclos-escolares', ciclosRoutes);
 app.use('/api/licenciaturas', licenciaturasRoutes);
 app.use('/api/consultas/recibos', consultasRoutes);
 app.use('/api/certificados', certificadosRoutes); // <-- **AÑADIDO**
+app.use('/api/herramientas', xmlGeneratorRoutes); 
 app.use('/api/conceptos', conceptosRoutes);
 app.use('/api/listas-precios', listasRoutes);
 app.use('/api/recibos', recibosRoutes);

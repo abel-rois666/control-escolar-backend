@@ -1,65 +1,63 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Historial Académico {{folio}}</title>
-</head>
-<body>
-    <div class="page">
-        <div class="header">
-            <div class="main-title">HISTORIAL ACADÉMICO</div>
-        </div>
+<div class="page">
+    <table class="info-table">
+        <tr>
+            <td class="label">Campus:</td>
+            <td colspan="3">{{campus}}</td>
+        </tr>
+        <tr>
+            <td class="label">Alumno:</td>
+            <td colspan="3">{{nombreAlumno}}</td>
+        </tr>
+        <tr>
+            <td class="label">CURP:</td>
+            <td>{{curp}}</td>
+            <td class="label">Matrícula:</td>
+            <td>{{matricula}}</td>
+        </tr>
+        <tr>
+            <td class="label">Nivel de estudios:</td>
+            <td>{{nivelEstudios}}</td>
+            <td class="label">Promedio:</td>
+            <td>{{promedio}}</td>
+        </tr>
+        <tr>
+            <td class="label">Carrera:</td>
+            <td>{{nombreCarrera}}</td>
+            <td class="label">Clave de carrera:</td>
+            <td class="merged-cell">
+                {{claveCarrera}}
+                <span class="label-inline">Clave de plan:</span> {{clavePlan}}
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Número RVOE:</td>
+            <td>{{rvoeNumero}}</td>
+            <td class="label">Fecha RVOE:</td>
+            <td>{{rvoeFecha}}</td>
+        </tr>
+         <tr>
+            <td class="label">Entidad Federativa:</td>
+            <td>{{entidadFederativa}}</td>
+            <td class="label">Fecha:</td>
+            <td>{{fechaExpedicion}}</td>
+        </tr>
+    </table>
 
-        <table class="info-table">
-            <tr>
-                <td class="label">NOMBRE DEL ALUMNO:</td>
-                <td>{{nombreAlumno}}</td>
-            </tr>
-            <tr>
-                <td class="label">CLAVE ÚNICA DE REGISTRO DE POBLACIÓN (CURP):</td>
-                <td>{{curp}}</td>
-            </tr>
-        </table>
-
-        <div class="intro-text">
-            A PETICIÓN DEL INTERESADO Y PARA LOS FINES LEGALES QUE AL MISMO CONVENGA,
-            SE HACE CONSTAR QUE EL (LA) C. <strong>{{nombreAlumno}}</strong>, CON NÚMERO
-            DE MATRÍCULA <strong>{{matricula}}</strong>, CURSÓ Y APROBÓ LAS ASIGNATURAS
-            QUE INTEGRAN EL PLAN DE ESTUDIOS DE LA <strong>Licenciatura en {{nombreCarrera}}</strong> Y QUE A
-            CONTINUACIÓN SE ENLISTAN:
-        </div>
-
-        <div class="table-container">
-            <table class="grades-table">
-                <thead>
-                    <tr>
-                        <th style="width: 10%;">CICLO</th>
-                        <th style="width: 15%;">CLAVE</th>
-                        <th style="width: 40%;">ASIGNATURA</th>
-                        <th style="width: 10%;">CALIF.</th>
-                        <th style="width: 15%;">LETRA</th>
-                        <th style="width: 10%;">OBS.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{filasAsignaturas}}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="footer-summary">
-            <p>TOTAL DE CRÉDITOS: {{creditos}}</p>
-            <p>PROMEDIO GENERAL DE APROVECHAMIENTO: {{promedio}}</p>
-        </div>
-        
-        <table class="signatures-table">
-            <tr>
-                <td>
-                    <div class="signature-line"></div>
-                    <div>DIRECTOR</div>
-                </td>
-            </tr>
+    <div class="table-container">
+        <table class="grades-table">
+            <thead>
+                <tr>
+                    <th>ASIGNATURA</th>
+                    <th>CICLO</th>
+                    <th>CALIFICACIÓN</th>
+                    <th>TIPO ASIGNATURA</th>
+                    <th>CRÉDITOS</th>
+                    <th>OBSERVACIÓN</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{filasAsignaturas}}
+            </tbody>
         </table>
     </div>
-</body>
-</html>
+</div>

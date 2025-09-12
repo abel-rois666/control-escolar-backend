@@ -1,72 +1,81 @@
 body {
     font-family: Arial, sans-serif;
-    font-size: 10pt;
-    margin: 0;
-    padding: 0;
+    font-size: 9pt;
     -webkit-print-color-adjust: exact;
 }
 .page {
-    width: 7.5in;
-    margin: auto;
+    width: 100%;
 }
-.header { text-align: center; }
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+/* --- INICIO DE LA CORRECCIÓN --- */
+.logo {
+    height: 60px; /* Se hizo el logo más grande */
+    margin-right: 10px;
+}
+/* Se eliminó la clase .logo-text que ya no se usa */
+/* --- FIN DE LA CORRECCIÓN --- */
+
+.header-main-text {
+    font-size: 11pt;
+    font-weight: bold;
+}
 .main-title {
-    font-size: 12pt;
-    margin: 20px 0;
+    text-align: center;
+    font-size: 11pt;
+    margin: 15px 0;
     font-weight: bold;
 }
 .info-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 8pt;
+    border: 1.5px solid black;
 }
 .info-table td {
+    padding: 2px 5px;
     border: 1px solid black;
-    padding: 4px 6px;
-    font-size: 8pt;
-    vertical-align: top;
 }
-.info-table td.label {
+.info-table .label {
     font-weight: bold;
-    width: 200px;
+    width: 110px;
+    background-color: #e7e6e6; 
 }
-.intro-text {
-    text-align: justify;
-    margin: 30px 0;
-    line-height: 1.5;
+.label-inline {
+    font-weight: bold;
+    margin-left: 10px;
 }
-.table-container { margin-top: 20px; }
+.merged-cell {
+    border-left: none !important;
+}
+.table-container { 
+    margin-top: 20px; 
+}
 .grades-table {
     width: 100%;
     border-collapse: collapse;
 }
 .grades-table th, .grades-table td {
-    border: 1px solid black;
+    border: 1px solid #000;
     padding: 4px;
     text-align: center;
     font-size: 8pt;
 }
-.grades-table th { font-weight: bold; }
-.grades-table .align-left { text-align: left; }
-.footer-summary {
-    margin-top: 25px;
-    font-size: 10pt;
-    text-align: center;
-    font-weight: bold;
+.grades-table th { 
+    font-weight: bold; 
+    background-color: #e7e6e6; 
 }
-.signatures-table {
-    width: 100%;
-    margin-top: 90px;
-    border: none;
-    border-collapse: collapse;
-}
-.signatures-table td {
-    text-align: center;
-    font-size: 9pt;
-    width: 50%;
-    vertical-align: bottom;
-}
-.signature-line {
-    border-top: 1px solid black;
-    margin-bottom: 5px;
+.grades-table .align-left { 
+    text-align: left; 
 }
