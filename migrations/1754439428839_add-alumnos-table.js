@@ -30,7 +30,7 @@ exports.up = (pgm) => {
     created_at: {
       type: 'timestamp',
       notNull: true,
-      default: pgm.func('current_timestamp'),
+      default: pgm.db.func('current_timestamp'),
     },
   });
 };

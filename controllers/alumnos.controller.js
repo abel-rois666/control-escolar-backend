@@ -1,6 +1,6 @@
 const fs = require('fs');
-const csv = require('csv-parser');
-const pool = require('../database'); // Asegúrate que la ruta a tu DB config sea correcta
+const { parse } = require('csv-parse');
+const pool = require('../config/database');
 
 // Función para convertir llaves de CSV (mayúsculas, espacios) a llaves de DB (minúsculas, guion bajo)
 const normalizeKeys = (obj) => {
@@ -124,7 +124,7 @@ const createAlumno = async (req, res) => {
       VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 
         $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, 
-        $33, $34, $35, $36, $37, $38, $39
+        $33, $34, $35, $36, $37, $38, $39, $40
       )
       RETURNING *`,
       [
@@ -332,10 +332,11 @@ const cargaMasivaAlumnos = async (req, res) => {
           const f_baja = parseDate(alumno.fecha_baja);
           const edad = alumno.edad ? parseInt(alumno.edad, 10) : null;
           const grado = alumno.grado ? parseInt(alumno.grado, 10) : null;
-          const lista_precios = parseInt(alumno.lista_de_precios_id, 10);
+          const lista_precios = parseInt(alumno.lista_de_precios_id, 10) || 1;
 
-          if (isNaN(lista_precios)) {
-            errors.push(`Fila ${rowNum}: 'lista_de_precios_id' inválido para matrícula ${alumno.matricula}.`);
+// Validación básica
+          if (!alumno.matricula || !alumno.nombre || !alumno.apellido_paterno) {
+            errors.push(`Fila ${rowNum}: Faltan datos obligatorios (matrícula, nombre, apellido paterno).`);
             skippedCount++;
             continue;
           }
@@ -379,7 +380,7 @@ const cargaMasivaAlumnos = async (req, res) => {
               calle_y_numero = EXCLUDED.calle_y_numero,
               cp = EXCLUDED.cp,
               municipio = EXCLUDED.municipio,
-_estado = EXCLUDED.estado,
+              estado = EXCLUDED.estado,
               telefono_fijo = EXCLUDED.telefono_fijo,
               observaciones = EXCLUDED.observaciones,
               email_institucional = EXCLUDED.email_institucional,
@@ -396,8 +397,8 @@ _estado = EXCLUDED.estado,
               usuario_sistema_creacion = EXCLUDED.usuario_sistema_creacion,
               usuario_sistema_actualizacion = EXCLUDED.usuario_sistema_actualizacion,
               promedio_esc_anterior = EXCLUDED.promedio_esc_anterior,
-              como_conocio_escuela = EXCLUDED.como_conocio_escuela,
-              enlace_expediente_digital = EXCLUDED.enlace_expediente_digital;
+              como_conocio_escuela = EXcluded.como_conocio_escuela,
+              enlace_expediente_digital = EXCLUDED.enlace_expediente_digital
           `;
           
           try {
@@ -439,17 +440,33 @@ _estado = EXCLUDED.estado,
     };
 
     // Determinar el tipo de archivo y procesar
+// Determinar el tipo de archivo y procesar
     if (req.file.mimetype === 'text/csv') {
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on('data', (data) => results.push(data))
-        .on('end', () => {
-          processData(results);
-        })
-        .on('error', (err) => {
-          fs.unlinkSync(filePath);
-          res.status(500).json({ message: 'Error al procesar el archivo CSV.', error: err.message });
-        });
+      
+      // 1. Creamos el parser PRIMERO, con la opción de usar cabeceras
+      const parser = parse({
+        columns: true, // Esto es vital: usa la primera fila como cabeceras
+        skip_empty_lines: true
+      });
+
+      // 2. Adjuntamos los listeners de eventos AL PARSER
+      parser.on('data', (data) => {
+        results.push(data);
+      });
+
+      parser.on('end', () => {
+        // 3. Cuando termine de leer, procesamos los resultados
+        processData(results);
+      });
+
+      parser.on('error', (err) => {
+        fs.unlinkSync(filePath);
+        res.status(500).json({ message: 'Error al procesar el archivo CSV.', error: err.message });
+      });
+
+      // 4. Finalmente, conectamos el archivo (readable) al parser (writable)
+      fs.createReadStream(filePath).pipe(parser);
+
     } else if (req.file.mimetype === 'application/json') {
       fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {

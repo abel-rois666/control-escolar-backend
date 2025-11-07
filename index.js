@@ -2,7 +2,10 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const pool = require('./config/database'); // <-- Importamos nuestra configuración de DB
+const pool = require('./config/database');
+const verifyToken = require('./middleware/auth.middleware.js');
+const checkPermission = require('./middleware/checkPermission.js');
+const authRoutes = require('./routes/auth.routes.js');
 const conceptosRoutes = require('./routes/conceptos.routes.js');
 const listasRoutes = require('./routes/listas.routes.js');
 const alumnosRoutes = require('./routes/alumnos.routes.js');
@@ -13,28 +16,58 @@ const estadoCuentaRoutes = require('./routes/estadoCuenta.routes.js');
 const ciclosRoutes = require('./routes/ciclos.routes.js');
 const licenciaturasRoutes = require('./routes/licenciaturas.routes.js');
 const consultasRoutes = require('./routes/consultas.routes.js');
-const certificadosRoutes = require('./routes/certificados.routes.js'); // <-- **AÑADIDO**
+const certificadosRoutes = require('./routes/certificados.routes.js');
 const xmlGeneratorRoutes = require('./routes/xmlGenerator.routes.js');
+
+// --- AÑADIDO: Importación para las nuevas rutas de usuarios ---
+const usuariosRoutes = require('./routes/usuarios.routes.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- REGISTRO DE RUTAS ---
-app.use('/api/alumnos', alumnosRoutes);
-app.use('/api/reportes', reportesRoutes);
-app.use('/api/ciclos-escolares', ciclosRoutes);
-app.use('/api/licenciaturas', licenciaturasRoutes);
-app.use('/api/consultas/recibos', consultasRoutes);
-app.use('/api/certificados', certificadosRoutes); // <-- **AÑADIDO**
-app.use('/api/herramientas', xmlGeneratorRoutes); 
-app.use('/api/conceptos', conceptosRoutes);
-app.use('/api/listas-precios', listasRoutes);
-app.use('/api/recibos', recibosRoutes);
+// --- RUTA PÚBLICA ---
+// La ruta de Login no lleva 'verifyToken'
+app.use('/api/auth', authRoutes);
 
-// Para obtener los cargos de un alumno específico la ruta será: /api/alumnos/1/cargos
-app.use('/api/alumnos/:alumnoId/cargos', cargosRoutes);
-alumnosRoutes.use('/:alumnoId/estado-de-cuenta', estadoCuentaRoutes);
+
+// --- RUTAS PROTEGIDAS ---
+// A partir de aquí, todas las rutas requieren un token válido Y un permiso
+
+// Alumnos
+app.use('/api/alumnos', verifyToken, checkPermission('alumnos_ver'), alumnosRoutes);
+
+// Reportes y Certificados
+app.use('/api/reportes', verifyToken, checkPermission('reportes_ver_adeudos'), reportesRoutes); // Permiso base para reportes
+app.use('/api/certificados', verifyToken, checkPermission('reportes_generar_certificados'), certificadosRoutes);
+
+// Herramientas
+app.use('/api/herramientas', verifyToken, checkPermission('herramientas_generar_xml'), xmlGeneratorRoutes); 
+
+// Configuración
+app.use('/api/ciclos-escolares', verifyToken, checkPermission('config_ver_ciclos'), ciclosRoutes);
+app.use('/api/licenciaturas', verifyToken, checkPermission('config_ver_licenciaturas'), licenciaturasRoutes);
+app.use('/api/conceptos', verifyToken, checkPermission('config_ver_conceptos'), conceptosRoutes);
+app.use('/api/listas-precios', verifyToken, checkPermission('config_ver_planes'), listasRoutes);
+app.use('/api/usuarios', verifyToken, checkPermission('config_ver_usuarios'), usuariosRoutes); // <-- AÑADIDO
+
+// Pagos y Recibos
+app.use('/api/consultas/recibos', verifyToken, checkPermission('pagos_ver_recibos'), consultasRoutes);
+app.use('/api/recibos', verifyToken, checkPermission('pagos_recibir'), recibosRoutes);
+
+// Rutas Anidadas
+// Estas rutas necesitan su propia protección explícita
+app.use('/api/alumnos/:alumnoId/cargos', verifyToken, checkPermission('pagos_recibir'), cargosRoutes);
+
+// Corregimos la ruta de estado de cuenta para que esté protegida
+// Se aplica el middleware directamente donde se define en 'alumnos.routes.js'
+// (Asegúrate de que 'alumnos.routes.js' también importe 'verifyToken' y 'checkPermission')
+alumnosRoutes.use(
+  '/:alumnoId/estado-de-cuenta', 
+  verifyToken, // <-- Protección doble (heredada y explícita)
+  checkPermission('pagos_ver_estado_cuenta'), // <-- Permiso específico
+  estadoCuentaRoutes
+);
 
 
 const PORT = process.env.PORT || 3000;
