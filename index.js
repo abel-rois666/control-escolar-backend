@@ -38,7 +38,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/alumnos', verifyToken, checkPermission('alumnos_ver'), alumnosRoutes);
 
 // Reportes y Certificados
-app.use('/api/reportes', verifyToken, checkPermission('reportes_ver_adeudos'), reportesRoutes); // Permiso base para reportes
+// ***** ESTE ES EL CAMBIO CLAVE *****
+// Se quitó checkPermission('reportes_ver_adeudos') de esta línea.
+app.use('/api/reportes', verifyToken, reportesRoutes); 
 app.use('/api/certificados', verifyToken, checkPermission('reportes_generar_certificados'), certificadosRoutes);
 
 // Herramientas
@@ -49,7 +51,7 @@ app.use('/api/ciclos-escolares', verifyToken, checkPermission('config_ver_ciclos
 app.use('/api/licenciaturas', verifyToken, checkPermission('config_ver_licenciaturas'), licenciaturasRoutes);
 app.use('/api/conceptos', verifyToken, checkPermission('config_ver_conceptos'), conceptosRoutes);
 app.use('/api/listas-precios', verifyToken, checkPermission('config_ver_planes'), listasRoutes);
-app.use('/api/usuarios', verifyToken, checkPermission('config_ver_usuarios'), usuariosRoutes); // <-- AÑADIDO
+app.use('/api/usuarios', verifyToken, checkPermission('config_ver_usuarios'), usuariosRoutes);
 
 // Pagos y Recibos
 app.use('/api/consultas/recibos', verifyToken, checkPermission('pagos_ver_recibos'), consultasRoutes);
@@ -60,12 +62,10 @@ app.use('/api/recibos', verifyToken, checkPermission('pagos_recibir'), recibosRo
 app.use('/api/alumnos/:alumnoId/cargos', verifyToken, checkPermission('pagos_recibir'), cargosRoutes);
 
 // Corregimos la ruta de estado de cuenta para que esté protegida
-// Se aplica el middleware directamente donde se define en 'alumnos.routes.js'
-// (Asegúrate de que 'alumnos.routes.js' también importe 'verifyToken' y 'checkPermission')
 alumnosRoutes.use(
   '/:alumnoId/estado-de-cuenta', 
-  verifyToken, // <-- Protección doble (heredada y explícita)
-  checkPermission('pagos_ver_estado_cuenta'), // <-- Permiso específico
+  verifyToken, 
+  checkPermission('pagos_ver_estado_cuenta'), 
   estadoCuentaRoutes
 );
 
